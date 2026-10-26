@@ -27,3 +27,19 @@ pub fn areTheyEvenInstalled(allocator: std.mem.Allocator, io: std.Io) !void {
         }
     }
 }
+
+pub fn getDuration(allocator: std.mem.Allocator, input: []const u8, io: std.Io) !f64 {
+    const argv = [_][]const u8{ "ffprobe", "-show_entries", "format=duration", "-v", "error", "-of", "default=noprint_wrappers=1:nokey=1", input }; // wow: extract duration + ignore anything that's not an error + output only the duration or field
+    const result = try std.process.run(allocator, io, .{
+        .argv = &argv
+    });
+
+    defer allocator.free(result.stdout);
+    defer allocator.free(result.stderr);
+
+    if (result.term != .exited or result.term.exited != 0) {
+        return error.FfprobeFailed;
+    }
+
+    return std.fmt.parseFloat(f64, std.mem.trim(u8, result.stdout, " \n\r\t")); // trims whitespace
+}
