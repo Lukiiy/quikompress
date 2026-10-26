@@ -54,3 +54,13 @@ fn run(allocator: std.mem.Allocator, io: std.Io, args: []const []const u8) !void
 
     if (result.term != .exited or result.term.exited != 0) return error.CommandFailed;
 }
+
+pub const FFValues = struct {
+    input: []const u8,
+    output: []const u8,
+    bitrate: i32,
+    maxBitrate: i32,
+    bufSize: i32,
+    audBitrate: i32,
+    logPrefix: []const u8,
+};
