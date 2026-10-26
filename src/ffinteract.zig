@@ -43,3 +43,14 @@ pub fn getDuration(allocator: std.mem.Allocator, input: []const u8, io: std.Io) 
 
     return std.fmt.parseFloat(f64, std.mem.trim(u8, result.stdout, " \n\r\t")); // trims whitespace
 }
+
+fn run(allocator: std.mem.Allocator, io: std.Io, args: []const []const u8) !void {
+    const result = try std.process.run(allocator, io, .{
+        .argv = args
+    });
+
+    defer allocator.free(result.stdout);
+    defer allocator.free(result.stderr);
+
+    if (result.term != .exited or result.term.exited != 0) return error.CommandFailed;
+}
