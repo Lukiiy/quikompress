@@ -51,6 +51,8 @@ pub fn main(init: std.process.Init) !void {
     const totalBits = TARGET * 8192.0;
     const totalBitrate: i32 = @trunc(totalBits / duration);
     const vidBitrate: i32 = totalBitrate - @as(i32, @intCast(AUDIO_BITRATE));
+    const maxBitrate: i32 = @divTrunc(vidBitrate * 145, 100); // 45% here is the sweetspot since it will work with the static frames, and also with most divergent frames (absolute peak issue: https://github.com/shaka-project/shaka-packager/issues/581)
+    const bufSize: i32 = vidBitrate * 2; // let's not try to avoid motion spikes
 
     if (vidBitrate <= 25) {
         std.debug.print("This video is way too long to fit into {d}mb!\nRequired bitrate: {d} kbps\n", .{ TARGET, vidBitrate });
