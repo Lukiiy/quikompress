@@ -38,7 +38,7 @@ pub fn main(init: std.process.Init) !void {
 
     std.debug.print("in: {s}; out: {s}\n", .{path, outPath});
 
-    const duration = interact.getDuration(allocator, path) catch {
+    const duration = interact.getDuration(allocator, path, io) catch {
         std.debug.print("Couldn't get the duration.\n", .{});
         std.process.exit(1);
     };
