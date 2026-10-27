@@ -58,4 +58,8 @@ pub fn main(init: std.process.Init) !void {
         std.debug.print("This video is way too long to fit into {d}mb!\nRequired bitrate: {d} kbps\n", .{ TARGET, vidBitrate });
         std.process.exit(1);
     }
+
+    var rng: std.Random.IoSource = .{ .io = io };
+    const logPrefix = try std.fmt.allocPrint(allocator, "ffmpeg2pass_{x}", .{rng.interface().int(u64)});
+    defer allocator.free(logPrefix);
 }
