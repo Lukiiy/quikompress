@@ -62,4 +62,31 @@ pub fn main(init: std.process.Init) !void {
     var rng: std.Random.IoSource = .{ .io = io };
     const logPrefix = try std.fmt.allocPrint(allocator, "ffmpeg2pass_{x}", .{rng.interface().int(u64)});
     defer allocator.free(logPrefix);
+
+    const values = interact.FFValues {
+        .input = path,
+        .output = outPath,
+        .bitrate = vidBitrate,
+        .maxBitrate = maxBitrate,
+        .bufSize = bufSize,
+        .audBitrate = AUDIO_BITRATE,
+        .logPrefix = logPrefix
+    };
+
+    std.debug.print("Analyzing the thing\n", .{});
+
+    interact.runPass1(allocator, io, values) catch {
+        std.debug.print("first pass failed :(\n", .{});
+        std.process.exit(1);
+    };
+
+    std.debug.print("Encoding\n", .{});
+
+    interact.runPass2(allocator, io, values) catch {
+        std.debug.print("second pass failed :(\n", .{});
+        std.process.exit(1);
+    };
+
+    interact.cleanup(allocator, io, logPrefix);
+    std.debug.print("Saved as {s}!\n", .{outPath});
 }
