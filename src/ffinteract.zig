@@ -86,3 +86,14 @@ pub fn runPass2(alloc: std.mem.Allocator, io: std.Io, values: FFValues) !void {
 
     try run(alloc, io, &argv);
 }
+
+pub fn cleanup(allocator: std.mem.Allocator, io: std.Io, prefix: []const u8) void {
+    const file = std.fmt.allocPrint(allocator, "{s}-0.log", .{prefix}) catch return;
+    defer allocator.free(file);
+
+    const file2 = std.fmt.allocPrint(allocator, "{s}-0.log.mbtree", .{prefix}) catch return;
+    defer allocator.free(file2);
+
+    std.Io.Dir.deleteFile(.cwd(), io, file) catch {};
+    std.Io.Dir.deleteFile(.cwd(), io, file2) catch {};
+}
