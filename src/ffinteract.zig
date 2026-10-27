@@ -64,3 +64,25 @@ pub const FFValues = struct {
     audBitrate: i32,
     logPrefix: []const u8,
 };
+
+pub fn runPass1(alloc: std.mem.Allocator, io: std.Io, values: FFValues) !void {
+    const bitrateStr = try std.fmt.allocPrint(alloc, "{d}k", .{values.bitrate});
+    defer alloc.free(bitrateStr);
+
+    const nullOut = if (builtin.os.tag != .windows) "/dev/null" else "NUL";
+    const argv = [_][]const u8{ "ffmpeg", "-y", "-i", values.input, "-c:v", "libvpx-vp9", "-b:v", bitrateStr, "-pass", "1", "-an", "-f", "null", nullOut }; // analyze the video and write data to a file (also ignores audio) and discards process output
+
+    try run(alloc, io, &argv);
+}
+
+pub fn runPass2(alloc: std.mem.Allocator, io: std.Io, values: FFValues) !void {
+    const bitrateStr = try std.fmt.allocPrint(alloc, "{d}k", .{values.bitrate});
+    defer alloc.free(bitrateStr);
+
+    const audBitrateStr = try std.fmt.allocPrint(alloc, "{d}k", .{values.audBitrate});
+    defer alloc.free(audBitrateStr);
+
+    const argv = [_][]const u8{ "ffmpeg", "-y", "-i", values.input, "-c:v", "libvpx-vp9", "-b:v", bitrateStr, "-pass", "2", "-c:a", "libopus", "-b:a", audBitrateStr, values.output }; // use the first pass' data to hit the target size; encodes audio with opus also
+
+    try run(alloc, io, &argv);
+}
