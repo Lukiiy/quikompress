@@ -10,20 +10,21 @@ pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
     const args = try init.minimal.args.toSlice(allocator);
 
-    if (args.len < 2) {
-        std.debug.print("Usage: {s} x y z\n", .{args[0]});
+    if (args.len < 1) {
+        std.debug.print("Usage: <inputVideo>\n", .{});
         std.process.exit(1);
     }
 
     const io = init.io;
     const path = args[1];
-    var outPath: []u8 = undefined;
+    const dir = std.fs.path.dirname(path) orelse "";
+    const stem = std.fs.path.stem(path);
+    const ext = std.fs.path.extension(path);
 
-    if (args.len >= 3) {
-        outPath = try allocator.dupe(u8, args[2]);
-    } else {
-        outPath = try std.fmt.allocPrint(allocator, "{s}_compress.webm", .{std.fs.path.stem(path)});
-    }
+    const outPath = if (dir.len > 0)
+        try std.fmt.allocPrint(allocator, "{s}/{s}_compressed{s}", .{ dir, stem, ext })
+    else
+        try std.fmt.allocPrint(allocator, "{s}_compressed{s}", .{ stem, ext });
 
     defer allocator.free(outPath);
 
@@ -35,8 +36,6 @@ pub fn main(init: std.process.Init) !void {
 
         file.close(io);
     }
-
-    std.debug.print("in: {s}; out: {s}\n", .{path, outPath});
 
     const duration = interact.getDuration(allocator, path, io) catch {
         std.debug.print("Couldn't get the duration.\n", .{});
